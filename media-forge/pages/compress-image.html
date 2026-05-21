@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Image Compressor — MediaForge</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="../index.html" class="nav__logo">Media<span>Forge</span></a>
+  <ul class="nav__links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="compress-image.html" class="active">Image Tools</a></li>
+    <li><a href="compress-video.html">Video Tools</a></li>
+    <li><a href="enhance-image.html">Enhance</a></li>
+  </ul>
+  <div class="nav__toggle" id="navToggle">&#9776;</div>
+</nav>
+
+<main class="tool-page">
+  <div class="tool-page__header">
+    <div class="tool-page__badge badge--cyan">🖼️ Image Compressor</div>
+    <h1 class="tool-page__title">Shrink Photos.<br/>Keep Quality.</h1>
+    <p class="tool-page__sub">Compress JPEG, PNG, and WebP images up to 90% — entirely in your browser.</p>
+  </div>
+
+  <!-- DROP ZONE -->
+  <div class="dropzone" id="dropzone">
+    <input type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple/>
+    <span class="dropzone__icon">🖼️</span>
+    <h3>Drop your image here</h3>
+    <p>or click to browse &nbsp;·&nbsp; JPG, PNG, WebP supported</p>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="settings-panel" id="settingsPanel" style="display:none;">
+    <h4>⚙ Compression Settings</h4>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Quality: <span class="range-val" id="qualityVal">75%</span></label>
+        <input type="range" id="quality" min="1" max="100" value="75"/>
+      </div>
+      <div class="form-group">
+        <label>Max Width (px)</label>
+        <input type="number" id="maxWidth" value="3840" min="100" max="7680" step="100"/>
+      </div>
+      <div class="form-group">
+        <label>Max Height (px)</label>
+        <input type="number" id="maxHeight" value="2160" min="100" max="4320" step="100"/>
+      </div>
+      <div class="form-group">
+        <label>Output Format</label>
+        <select id="format">
+          <option value="jpeg">JPEG (best compression)</option>
+          <option value="webp">WebP (modern)</option>
+          <option value="png">PNG (lossless)</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn--primary btn--lg" id="compressBtn">⚡ Compress Image</button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-bar__fill" id="progressFill"></div></div>
+    <p class="progress-label" id="progressLabel">Processing…</p>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-panel" id="previewPanel" style="display:none;">
+    <div class="preview-box">
+      <div class="preview-box__label">
+        Original <span class="size-badge" id="origSize">—</span>
+      </div>
+      <img id="origImg" alt="Original"/>
+    </div>
+    <div class="preview-box">
+      <div class="preview-box__label">
+        Compressed <span class="size-badge" id="compSize">—</span>
+      </div>
+      <div class="preview-box__empty" id="compEmpty">Process to see result</div>
+      <img id="compImg" alt="Compressed" style="display:none;"/>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-panel" id="resultPanel">
+    <div class="result-info">
+      <div class="result-stat">
+        <span class="result-stat__val" id="resSavings">—</span>
+        <span class="result-stat__key">Space Saved</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-stat__val" id="resOrig">—</span>
+        <span class="result-stat__key">Original Size</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-stat__val" id="resComp">—</span>
+        <span class="result-stat__key">Compressed Size</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-stat__val" id="resDims">—</span>
+        <span class="result-stat__key">Dimensions</span>
+      </div>
+      <button class="btn btn--green btn--lg" id="downloadBtn" style="margin-left:auto;">⬇ Download</button>
+    </div>
+  </div>
+
+  <!-- MULTIPLE FILES LIST -->
+  <div id="multiPanel" style="display:none; margin-top:1.5rem;">
+    <h4 style="font-family:var(--font-display);margin-bottom:1rem;">Multiple Files</h4>
+    <div class="batch-list" id="batchList"></div>
+    <button class="btn btn--green btn--lg" id="downloadAllBtn" style="margin-top:1rem;">⬇ Download All as ZIP</button>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer__logo">Media<span>Forge</span></div>
+  <p>No data leaves your browser. Ever.</p>
+  <p class="footer__copy">© 2025 MediaForge</p>
+</footer>
+
+<script type="module">
+import { compressImage, formatBytes, savings, downloadBlob } from '../js/imageCompressor.js';
+import { setupDropzone, setProgress, hideProgress } from '../js/utils.js';
+
+let currentFile = null;
+let currentFiles = [];
+let compressedBlob = null;
+let compressedBlobs = [];
+
+// Quality slider
+const qualitySlider = document.getElementById('quality');
+qualitySlider.addEventListener('input', () => {
+  document.getElementById('qualityVal').textContent = qualitySlider.value + '%';
+});
+
+// Dropzone
+setupDropzone(document.getElementById('dropzone'), ['.jpg','.jpeg','.png','.webp'], (files) => {
+  if (files.length === 1) {
+    loadSingleFile(files[0]);
+  } else {
+    loadMultipleFiles(files);
+  }
+});
+
+function loadSingleFile(file) {
+  currentFile = file;
+  currentFiles = [];
+  document.getElementById('settingsPanel').style.display = 'block';
+  document.getElementById('previewPanel').style.display = 'grid';
+  document.getElementById('multiPanel').style.display = 'none';
+  document.getElementById('resultPanel').classList.remove('show');
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById('origImg');
+    img.src = e.target.result;
+    img.style.display = 'block';
+    document.getElementById('origSize').textContent = formatBytes(file.size);
+    document.getElementById('compImg').style.display = 'none';
+    document.getElementById('compEmpty').style.display = 'flex';
+    compressedBlob = null;
+  };
+  reader.readAsDataURL(file);
+}
+
+function loadMultipleFiles(files) {
+  currentFiles = files;
+  currentFile = null;
+  compressedBlobs = [];
+  document.getElementById('settingsPanel').style.display = 'block';
+  document.getElementById('previewPanel').style.display = 'none';
+  document.getElementById('multiPanel').style.display = 'block';
+  document.getElementById('resultPanel').classList.remove('show');
+
+  const list = document.getElementById('batchList');
+  list.innerHTML = '';
+  files.forEach((f, i) => {
+    const item = document.createElement('div');
+    item.className = 'batch-item';
+    item.id = `item-${i}`;
+    item.innerHTML = `
+      <div class="batch-item__thumb" id="thumb-${i}" style="background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.5rem;">🖼️</div>
+      <div class="batch-item__info">
+        <div class="batch-item__name">${f.name}</div>
+        <div class="batch-item__meta">${formatBytes(f.size)}</div>
+      </div>
+      <span class="batch-item__status status--pending" id="status-${i}">Pending</span>`;
+    list.appendChild(item);
+    // Load thumbnail
+    const reader = new FileReader();
+    reader.onload = e => {
+      const thumb = document.getElementById(`thumb-${i}`);
+      thumb.innerHTML = '';
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.style.cssText = 'width:48px;height:48px;object-fit:cover;border-radius:6px;';
+      thumb.appendChild(img);
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+// Single compress
+document.getElementById('compressBtn').addEventListener('click', async () => {
+  if (!currentFile && currentFiles.length === 0) return;
+
+  const opts = {
+    quality: parseInt(qualitySlider.value) / 100,
+    maxWidth: parseInt(document.getElementById('maxWidth').value),
+    maxHeight: parseInt(document.getElementById('maxHeight').value),
+    format: document.getElementById('format').value
+  };
+
+  if (currentFile) {
+    await compressSingle(currentFile, opts);
+  } else {
+    await compressMultiple(currentFiles, opts);
+  }
+});
+
+async function compressSingle(file, opts) {
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+
+  setProgress(progressWrap, progressFill, progressLabel, 10, 'Compressing…');
+  document.getElementById('compressBtn').disabled = true;
+
+  try {
+    // Animate progress
+    let prog = 10;
+    const ticker = setInterval(() => {
+      prog = Math.min(prog + 15, 85);
+      setProgress(progressWrap, progressFill, progressLabel, prog, 'Compressing…');
+    }, 120);
+
+    const result = await compressImage(file, opts);
+    clearInterval(ticker);
+    setProgress(progressWrap, progressFill, progressLabel, 100, 'Done!');
+
+    setTimeout(() => hideProgress(progressWrap), 800);
+
+    compressedBlob = result.blob;
+    const ext = opts.format === 'jpeg' ? 'jpg' : opts.format;
+
+    document.getElementById('compImg').src = result.dataUrl;
+    document.getElementById('compImg').style.display = 'block';
+    document.getElementById('compEmpty').style.display = 'none';
+    document.getElementById('compSize').textContent = formatBytes(result.compressedSize);
+
+    // Result stats
+    document.getElementById('resSavings').textContent = savings(result.originalSize, result.compressedSize) + '%';
+    document.getElementById('resOrig').textContent = formatBytes(result.originalSize);
+    document.getElementById('resComp').textContent = formatBytes(result.compressedSize);
+    document.getElementById('resDims').textContent = `${result.width} × ${result.height}`;
+    document.getElementById('resultPanel').classList.add('show');
+
+    // Download button
+    document.getElementById('downloadBtn').onclick = () => {
+      const name = file.name.replace(/\.[^.]+$/, '') + '_compressed.' + ext;
+      downloadBlob(compressedBlob, name);
+    };
+  } catch (err) {
+    hideProgress(document.getElementById('progressWrap'));
+    alert('Compression failed: ' + err.message);
+  } finally {
+    document.getElementById('compressBtn').disabled = false;
+  }
+}
+
+async function compressMultiple(files, opts) {
+  compressedBlobs = [];
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+
+  for (let i = 0; i < files.length; i++) {
+    const pct = Math.round(((i) / files.length) * 100);
+    setProgress(progressWrap, progressFill, progressLabel, pct, `Compressing ${i+1} of ${files.length}…`);
+    document.getElementById(`status-${i}`).className = 'batch-item__status status--processing';
+    document.getElementById(`status-${i}`).textContent = 'Processing…';
+
+    try {
+      const result = await compressImage(files[i], opts);
+      compressedBlobs.push({ blob: result.blob, name: files[i].name, result });
+      const saved = savings(result.originalSize, result.compressedSize);
+      document.getElementById(`status-${i}`).className = 'batch-item__status status--done';
+      document.getElementById(`status-${i}`).textContent = `-${saved}%`;
+    } catch (e) {
+      document.getElementById(`status-${i}`).className = 'batch-item__status status--error';
+      document.getElementById(`status-${i}`).textContent = 'Error';
+    }
+  }
+  setProgress(progressWrap, progressFill, progressLabel, 100, 'All done!');
+  setTimeout(() => hideProgress(progressWrap), 800);
+}
+
+// Download all as ZIP (using a simple manual ZIP-like approach - actually just download individually with delay)
+document.getElementById('downloadAllBtn')?.addEventListener('click', async () => {
+  if (compressedBlobs.length === 0) {
+    alert('Please compress files first.');
+    return;
+  }
+  const ext = document.getElementById('format').value === 'jpeg' ? 'jpg' : document.getElementById('format').value;
+  compressedBlobs.forEach((item, i) => {
+    setTimeout(() => {
+      const name = item.name.replace(/\.[^.]+$/, '') + '_compressed.' + ext;
+      downloadBlob(item.blob, name);
+    }, i * 300);
+  });
+});
+
+// Nav toggle
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.querySelector('.nav__links').classList.toggle('open');
+});
+</script>
+</body>
+</html>

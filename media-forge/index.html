@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MediaForge — Compress & Enhance</title>
+    <link rel="stylesheet" href="css/main.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <!-- NAV -->
+    <nav class="nav">
+      <div class="nav__logo">Media<span>Forge</span></div>
+      <ul class="nav__links">
+        <li><a href="index.html" class="active">Home</a></li>
+        <li><a href="pages/compress-image.html">Image Tools</a></li>
+        <li><a href="pages/compress-video.html">Video Tools</a></li>
+        <li><a href="pages/enhance-image.html">Enhance</a></li>
+      </ul>
+      <div class="nav__toggle" id="navToggle">&#9776;</div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+      <div class="hero__bg">
+        <div class="orb orb--1"></div>
+        <div class="orb orb--2"></div>
+        <div class="orb orb--3"></div>
+        <div class="grid-overlay"></div>
+      </div>
+      <div class="hero__content">
+        <div class="hero__badge">⚡ Free · No Signup · Runs In Browser</div>
+        <h3 class="hero__title">
+          Compress.<br />Enhance.<br /><span>Deliver.</span>
+        </h3>
+        <p class="hero__sub">
+          Professional-grade photo & video processing — completely in your
+          browser. Your files never leave your device.
+        </p>
+        <div class="hero__cta">
+          <a href="pages/compress-image.html" class="btn btn--primary"
+            >Compress Image</a
+          >
+          <a href="pages/compress-video.html" class="btn btn--secondary"
+            >Compress Video</a
+          >
+          <a href="pages/enhance-image.html" class="btn btn--ghost"
+            >Enhance Photo</a
+          >
+        </div>
+      </div>
+      <div class="hero__stats">
+        <div class="stat">
+          <span class="stat__num">100%</span
+          ><span class="stat__label">Client-Side</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num">0</span
+          ><span class="stat__label">Upload to Server</span>
+        </div>
+        <div class="stat">
+          <span class="stat__num">∞</span
+          ><span class="stat__label">Files Processable</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- TOOLS GRID -->
+    <section class="tools">
+      <h2 class="tools__heading">Choose Your Tool</h2>
+      <div class="tools__grid">
+        <a href="pages/compress-image.html" class="tool-card tool-card--img">
+          <div class="tool-card__icon">🖼️</div>
+          <h3>Image Compressor</h3>
+          <p>
+            Reduce JPEG, PNG, WebP file size up to 90% without visible quality
+            loss.
+          </p>
+          <div class="tool-card__tag">JPG · PNG · WebP</div>
+          <div class="tool-card__arrow">→</div>
+        </a>
+
+        <a href="pages/compress-video.html" class="tool-card tool-card--vid">
+          <div class="tool-card__icon">🎬</div>
+          <h3>Video Compressor</h3>
+          <p>
+            Shrink MP4, WebM, MOV videos. Choose bitrate, resolution and codec.
+          </p>
+          <div class="tool-card__tag">MP4 · WebM · MOV</div>
+          <div class="tool-card__arrow">→</div>
+        </a>
+
+        <a href="pages/enhance-image.html" class="tool-card tool-card--enh">
+          <div class="tool-card__icon">✨</div>
+          <h3>Photo Enhancer</h3>
+          <p>
+            Auto-sharpen, denoise, adjust brightness/contrast and color
+            correction.
+          </p>
+          <div class="tool-card__tag">Sharpen · Denoise · Color</div>
+          <div class="tool-card__arrow">→</div>
+        </a>
+
+        <a href="pages/batch.html" class="tool-card tool-card--batch">
+          <div class="tool-card__icon">📦</div>
+          <h3>Batch Processor</h3>
+          <p>Process dozens of photos or videos at once. Download as a ZIP.</p>
+          <div class="tool-card__tag">Bulk · ZIP Download</div>
+          <div class="tool-card__arrow">→</div>
+        </a>
+      </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how">
+      <h2>How It Works</h2>
+      <div class="how__steps">
+        <div class="how__step">
+          <span class="how__num">01</span>
+          <h4>Upload</h4>
+          <p>Drop your photo or video onto the tool page.</p>
+        </div>
+        <div class="how__line"></div>
+        <div class="how__step">
+          <span class="how__num">02</span>
+          <h4>Configure</h4>
+          <p>Pick quality, resolution, and output format.</p>
+        </div>
+        <div class="how__line"></div>
+        <div class="how__step">
+          <span class="how__num">03</span>
+          <h4>Process</h4>
+          <p>Everything happens instantly in your browser.</p>
+        </div>
+        <div class="how__line"></div>
+        <div class="how__step">
+          <span class="how__num">04</span>
+          <h4>Download</h4>
+          <p>Save the compressed or enhanced file.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+      <div class="footer__logo">Media<span>Forge</span></div>
+      <p>No data leaves your browser. Ever.</p>
+      <div class="footer__links">
+        <a href="pages/compress-image.html">Images</a>
+        <a href="pages/compress-video.html">Videos</a>
+        <a href="pages/enhance-image.html">Enhance</a>
+        <a href="pages/batch.html">Batch</a>
+      </div>
+      <p class="footer__copy">© 2025 MediaForge. Built with browser APIs.</p>
+    </footer>
+
+    <script src="js/nav.js"></script>
+  </body>
+</html>

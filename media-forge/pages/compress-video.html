@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Video Compressor — MediaForge</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="../index.html" class="nav__logo">Media<span>Forge</span></a>
+  <ul class="nav__links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="compress-image.html">Image Tools</a></li>
+    <li><a href="compress-video.html" class="active">Video Tools</a></li>
+    <li><a href="enhance-image.html">Enhance</a></li>
+  </ul>
+  <div class="nav__toggle" id="navToggle">&#9776;</div>
+</nav>
+
+<main class="tool-page">
+  <div class="tool-page__header">
+    <div class="tool-page__badge badge--orange">🎬 Video Compressor</div>
+    <h1 class="tool-page__title">Compress Videos.<br/>No Upload Needed.</h1>
+    <p class="tool-page__sub">Reduce MP4, WebM, MOV file sizes directly in your browser using the MediaRecorder API.</p>
+  </div>
+
+  <!-- Browser support notice -->
+  <div id="browserNotice" style="display:none; background:rgba(255,107,53,0.1); border:1px solid rgba(255,107,53,0.3); border-radius:12px; padding:1rem 1.25rem; margin-bottom:1.5rem; font-size:0.88rem; color:var(--accent2);">
+    ⚠️ <strong>Note:</strong> Video compression uses the MediaRecorder API. For best results use Chrome or Edge. Output format is WebM. Firefox may have limited codec support.
+  </div>
+
+  <!-- DROP ZONE -->
+  <div class="dropzone" id="dropzone">
+    <input type="file" accept="video/mp4,video/webm,video/quicktime,video/*"/>
+    <span class="dropzone__icon">🎬</span>
+    <h3>Drop your video here</h3>
+    <p>or click to browse &nbsp;·&nbsp; MP4, WebM, MOV supported</p>
+  </div>
+
+  <!-- VIDEO META -->
+  <div class="settings-panel" id="metaPanel" style="display:none;">
+    <h4>📋 Video Info</h4>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Dimensions</label>
+        <input type="text" id="metaDims" readonly style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;color:var(--text);font-family:var(--font-body);font-size:0.88rem;"/>
+      </div>
+      <div class="form-group">
+        <label>Duration</label>
+        <input type="text" id="metaDuration" readonly style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;color:var(--text);font-family:var(--font-body);font-size:0.88rem;"/>
+      </div>
+      <div class="form-group">
+        <label>Original Size</label>
+        <input type="text" id="metaSize" readonly style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:0.6rem 0.9rem;color:var(--text);font-family:var(--font-body);font-size:0.88rem;"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="settings-panel" id="settingsPanel" style="display:none;">
+    <h4>⚙ Compression Settings</h4>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Video Quality</label>
+        <select id="videoBitrate">
+          <option value="500000">Low (500 kbps)</option>
+          <option value="1000000">Medium (1 Mbps)</option>
+          <option value="1500000" selected>Good (1.5 Mbps)</option>
+          <option value="2500000">High (2.5 Mbps)</option>
+          <option value="5000000">Very High (5 Mbps)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Resolution Scale</label>
+        <select id="scale">
+          <option value="0.25">25% — Tiny</option>
+          <option value="0.5">50% — Small</option>
+          <option value="0.75">75% — Medium</option>
+          <option value="1.0" selected>100% — Original</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Frame Rate</label>
+        <select id="fps">
+          <option value="15">15 FPS</option>
+          <option value="24">24 FPS</option>
+          <option value="30" selected>30 FPS</option>
+          <option value="60">60 FPS</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Audio Bitrate</label>
+        <select id="audioBitrate">
+          <option value="64000">64 kbps</option>
+          <option value="96000" selected>96 kbps</option>
+          <option value="128000">128 kbps</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn--secondary btn--lg" id="compressBtn">⚡ Start Compression</button>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-bar__fill" id="progressFill"></div></div>
+    <p class="progress-label" id="progressLabel">Processing video… (this may take a minute)</p>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-panel" id="previewPanel" style="display:none;">
+    <div class="preview-box">
+      <div class="preview-box__label">
+        Original <span class="size-badge" id="origSize">—</span>
+      </div>
+      <video id="origVideo" controls style="width:100%;max-height:260px;background:#000;"></video>
+    </div>
+    <div class="preview-box">
+      <div class="preview-box__label">
+        Compressed <span class="size-badge" id="compSize">—</span>
+      </div>
+      <div class="preview-box__empty" id="compEmpty">Process to see result</div>
+      <video id="compVideo" controls style="width:100%;max-height:260px;background:#000;display:none;"></video>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div class="result-panel" id="resultPanel">
+    <div class="result-info">
+      <div class="result-stat">
+        <span class="result-stat__val" id="resSavings">—</span>
+        <span class="result-stat__key">Space Saved</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-stat__val" id="resOrig">—</span>
+        <span class="result-stat__key">Original Size</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-stat__val" id="resComp">—</span>
+        <span class="result-stat__key">Compressed Size</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-stat__val" id="resDims">—</span>
+        <span class="result-stat__key">Resolution</span>
+      </div>
+      <button class="btn btn--green btn--lg" id="downloadBtn" style="margin-left:auto;">⬇ Download</button>
+    </div>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer__logo">Media<span>Forge</span></div>
+  <p>No data leaves your browser. Ever.</p>
+  <p class="footer__copy">© 2025 MediaForge</p>
+</footer>
+
+<script type="module">
+import { compressVideo, getVideoMeta } from '../js/videoCompressor.js';
+import { formatBytes, savings, downloadBlob, formatDuration, setupDropzone, setProgress, hideProgress } from '../js/utils.js';
+
+// Show browser notice
+if (!window.MediaRecorder) {
+  document.getElementById('browserNotice').style.display = 'block';
+  document.getElementById('browserNotice').textContent = '❌ Your browser does not support the MediaRecorder API. Please use Chrome, Edge, or Firefox.';
+} else {
+  document.getElementById('browserNotice').style.display = 'block';
+}
+
+let currentFile = null;
+let compressedBlob = null;
+
+setupDropzone(document.getElementById('dropzone'), ['video/'], async (files) => {
+  if (!files[0]) return;
+  loadVideo(files[0]);
+});
+
+async function loadVideo(file) {
+  currentFile = file;
+  compressedBlob = null;
+
+  document.getElementById('settingsPanel').style.display = 'block';
+  document.getElementById('metaPanel').style.display = 'block';
+  document.getElementById('previewPanel').style.display = 'grid';
+  document.getElementById('resultPanel').classList.remove('show');
+
+  const meta = await getVideoMeta(file);
+  document.getElementById('metaDims').value = `${meta.width} × ${meta.height}`;
+  document.getElementById('metaDuration').value = formatDuration(meta.duration);
+  document.getElementById('metaSize').value = formatBytes(file.size);
+
+  const origVideo = document.getElementById('origVideo');
+  origVideo.src = URL.createObjectURL(file);
+  document.getElementById('origSize').textContent = formatBytes(file.size);
+  document.getElementById('compVideo').style.display = 'none';
+  document.getElementById('compEmpty').style.display = 'flex';
+}
+
+document.getElementById('compressBtn').addEventListener('click', async () => {
+  if (!currentFile) return alert('Please upload a video first.');
+
+  const opts = {
+    videoBitrate: parseInt(document.getElementById('videoBitrate').value),
+    audioBitrate: parseInt(document.getElementById('audioBitrate').value),
+    scale: parseFloat(document.getElementById('scale').value),
+    fps: parseInt(document.getElementById('fps').value)
+  };
+
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  const btn = document.getElementById('compressBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Compressing…';
+
+  setProgress(progressWrap, progressFill, progressLabel, 5, 'Initializing…');
+
+  try {
+    const result = await compressVideo(currentFile, opts, (pct) => {
+      setProgress(progressWrap, progressFill, progressLabel, pct, `Compressing… ${pct}%`);
+    });
+
+    setProgress(progressWrap, progressFill, progressLabel, 100, 'Done!');
+    setTimeout(() => hideProgress(progressWrap), 800);
+
+    compressedBlob = result.blob;
+    const compUrl = URL.createObjectURL(result.blob);
+    const compVideo = document.getElementById('compVideo');
+    compVideo.src = compUrl;
+    compVideo.style.display = 'block';
+    document.getElementById('compEmpty').style.display = 'none';
+    document.getElementById('compSize').textContent = formatBytes(result.compressedSize);
+
+    document.getElementById('resSavings').textContent = savings(result.originalSize, result.compressedSize) + '%';
+    document.getElementById('resOrig').textContent = formatBytes(result.originalSize);
+    document.getElementById('resComp').textContent = formatBytes(result.compressedSize);
+    document.getElementById('resDims').textContent = `${result.width} × ${result.height}`;
+    document.getElementById('resultPanel').classList.add('show');
+
+    document.getElementById('downloadBtn').onclick = () => {
+      downloadBlob(compressedBlob, currentFile.name.replace(/\.[^.]+$/, '') + '_compressed.webm');
+    };
+  } catch (err) {
+    hideProgress(progressWrap);
+    alert('Compression failed: ' + err.message + '\n\nTip: Try a shorter video or use Chrome/Edge.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⚡ Start Compression';
+  }
+});
+
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.querySelector('.nav__links').classList.toggle('open');
+});
+</script>
+</body>
+</html>

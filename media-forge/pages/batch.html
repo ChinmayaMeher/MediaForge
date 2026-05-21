@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Batch Processor — MediaForge</title>
+  <link rel="stylesheet" href="../css/main.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="../index.html" class="nav__logo">Media<span>Forge</span></a>
+  <ul class="nav__links">
+    <li><a href="../index.html">Home</a></li>
+    <li><a href="compress-image.html">Image Tools</a></li>
+    <li><a href="compress-video.html">Video Tools</a></li>
+    <li><a href="enhance-image.html">Enhance</a></li>
+  </ul>
+  <div class="nav__toggle" id="navToggle">&#9776;</div>
+</nav>
+
+<main class="tool-page">
+  <div class="tool-page__header">
+    <div class="tool-page__badge badge--green">📦 Batch Processor</div>
+    <h1 class="tool-page__title">Process Dozens<br/>At Once.</h1>
+    <p class="tool-page__sub">Upload multiple images, apply compression and enhancement settings, and download all results individually.</p>
+  </div>
+
+  <!-- DROP ZONE -->
+  <div class="dropzone" id="dropzone">
+    <input type="file" accept="image/jpeg,image/png,image/webp" multiple/>
+    <span class="dropzone__icon">📦</span>
+    <h3>Drop multiple images here</h3>
+    <p>or click to browse &nbsp;·&nbsp; Select many at once &nbsp;·&nbsp; JPG, PNG, WebP</p>
+  </div>
+
+  <!-- SETTINGS -->
+  <div class="settings-panel" id="settingsPanel" style="display:none;">
+    <h4>⚙ Batch Settings (applied to all files)</h4>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Mode</label>
+        <select id="mode">
+          <option value="compress">Compress Only</option>
+          <option value="enhance">Enhance Only</option>
+          <option value="both">Compress + Enhance</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Quality: <span class="range-val" id="qualityVal">75%</span></label>
+        <input type="range" id="quality" min="1" max="100" value="75"/>
+      </div>
+      <div class="form-group">
+        <label>Output Format</label>
+        <select id="format">
+          <option value="jpeg">JPEG</option>
+          <option value="webp">WebP</option>
+          <option value="png">PNG</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Max Width (px)</label>
+        <input type="number" id="maxWidth" value="2048" min="100" max="7680" step="100"/>
+      </div>
+    </div>
+
+    <!-- Enhancement quick settings (shown when mode includes enhance) -->
+    <div id="enhanceSettings" style="display:none;">
+      <div class="form-row" style="margin-top:0.5rem;">
+        <div class="form-group">
+          <label>Brightness <span class="range-val" id="bVal">0</span></label>
+          <input type="range" id="bBrightness" min="-100" max="100" value="0"/>
+        </div>
+        <div class="form-group">
+          <label>Contrast <span class="range-val" id="cVal">0</span></label>
+          <input type="range" id="bContrast" min="-100" max="100" value="0"/>
+        </div>
+        <div class="form-group">
+          <label>Saturation <span class="range-val" id="sVal">0</span></label>
+          <input type="range" id="bSaturation" min="-100" max="100" value="0"/>
+        </div>
+        <div class="form-group">
+          <label>Sharpness <span class="range-val" id="shVal">0</span></label>
+          <input type="range" id="bSharpness" min="0" max="100" value="0"/>
+        </div>
+      </div>
+      <div style="margin-top:0.5rem; display:flex; gap:0.5rem; flex-wrap:wrap;">
+        <span style="font-size:0.78rem; color:var(--text-dim); margin-right:0.5rem; line-height:2;">Quick Presets:</span>
+        <button class="preset-btn-sm" data-b="5" data-c="20" data-s="40" data-sh="30">Vivid</button>
+        <button class="preset-btn-sm" data-b="10" data-c="10" data-s="-10" data-sh="20">Portrait</button>
+        <button class="preset-btn-sm" data-b="-5" data-c="25" data-s="35" data-sh="25">Landscape</button>
+        <button class="preset-btn-sm" data-b="-10" data-c="35" data-s="-20" data-sh="15">Cinematic</button>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:1rem; margin-top:1.25rem; flex-wrap:wrap; align-items:center;">
+      <button class="btn btn--green btn--lg" id="processBtn">⚡ Process All Files</button>
+      <span id="fileCount" style="font-size:0.88rem; color:var(--text-dim);">0 files loaded</span>
+    </div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progressWrap">
+    <div class="progress-bar"><div class="progress-bar__fill" id="progressFill"></div></div>
+    <p class="progress-label" id="progressLabel">Processing…</p>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="result-panel" id="summaryPanel">
+    <div class="result-info">
+      <div class="result-stat">
+        <span class="result-stat__val" id="sumTotal">—</span>
+        <span class="result-stat__key">Files Processed</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-stat__val" id="sumSaved">—</span>
+        <span class="result-stat__key">Avg. Space Saved</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-stat__val" id="sumOrig">—</span>
+        <span class="result-stat__key">Total Original</span>
+      </div>
+      <div class="result-stat">
+        <span class="result-stat__val" id="sumComp">—</span>
+        <span class="result-stat__key">Total Compressed</span>
+      </div>
+      <button class="btn btn--green btn--lg" id="downloadAllBtn" style="margin-left:auto;">⬇ Download All</button>
+    </div>
+  </div>
+
+  <!-- FILE LIST -->
+  <div class="batch-list" id="batchList" style="margin-top:1.5rem;"></div>
+</main>
+
+<footer class="footer">
+  <div class="footer__logo">Media<span>Forge</span></div>
+  <p>No data leaves your browser. Ever.</p>
+  <p class="footer__copy">© 2025 MediaForge</p>
+</footer>
+
+<style>
+.preset-btn-sm {
+  padding: 0.3rem 0.75rem;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 50px;
+  color: var(--text-dim);
+  font-family: var(--font-body);
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.preset-btn-sm:hover { border-color: var(--green); color: var(--green); }
+</style>
+
+<script type="module">
+import { compressImage, formatBytes, savings, downloadBlob } from '../js/imageCompressor.js';
+import { enhanceImage } from '../js/imageEnhancer.js';
+import { setupDropzone, setProgress, hideProgress, readFileAsDataURL } from '../js/utils.js';
+
+let files = [];
+let results = [];
+
+// Mode toggle
+document.getElementById('mode').addEventListener('change', () => {
+  const mode = document.getElementById('mode').value;
+  document.getElementById('enhanceSettings').style.display =
+    (mode === 'enhance' || mode === 'both') ? 'block' : 'none';
+});
+
+// Slider labels
+['quality'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById('qualityVal').textContent = document.getElementById(id).value + '%';
+  });
+});
+[['bBrightness','bVal'],['bContrast','cVal'],['bSaturation','sVal'],['bSharpness','shVal']].forEach(([id,val]) => {
+  document.getElementById(id).addEventListener('input', () => {
+    document.getElementById(val).textContent = document.getElementById(id).value;
+  });
+});
+
+// Preset buttons
+document.querySelectorAll('.preset-btn-sm').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.getElementById('bBrightness').value = btn.dataset.b; document.getElementById('bVal').textContent = btn.dataset.b;
+    document.getElementById('bContrast').value = btn.dataset.c; document.getElementById('cVal').textContent = btn.dataset.c;
+    document.getElementById('bSaturation').value = btn.dataset.s; document.getElementById('sVal').textContent = btn.dataset.s;
+    document.getElementById('bSharpness').value = btn.dataset.sh; document.getElementById('shVal').textContent = btn.dataset.sh;
+  });
+});
+
+// Dropzone
+setupDropzone(document.getElementById('dropzone'), ['.jpg','.jpeg','.png','.webp'], (newFiles) => {
+  files = newFiles;
+  results = [];
+  document.getElementById('settingsPanel').style.display = 'block';
+  document.getElementById('fileCount').textContent = `${files.length} file${files.length !== 1 ? 's' : ''} loaded`;
+  document.getElementById('summaryPanel').classList.remove('show');
+  renderFileList();
+});
+
+function renderFileList() {
+  const list = document.getElementById('batchList');
+  list.innerHTML = '';
+  files.forEach((f, i) => {
+    const item = document.createElement('div');
+    item.className = 'batch-item';
+    item.id = `item-${i}`;
+    item.innerHTML = `
+      <div style="width:48px;height:48px;background:var(--surface2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.4rem;flex-shrink:0;" id="thumb-${i}">🖼️</div>
+      <div class="batch-item__info">
+        <div class="batch-item__name">${f.name}</div>
+        <div class="batch-item__meta" id="meta-${i}">${formatBytes(f.size)}</div>
+      </div>
+      <span class="batch-item__status status--pending" id="status-${i}">Pending</span>
+      <button class="btn btn--ghost" id="dl-${i}" style="display:none;padding:0.35rem 0.75rem;font-size:0.78rem;border-radius:6px;">⬇</button>`;
+    list.appendChild(item);
+    // Thumbnail
+    const reader = new FileReader();
+    reader.onload = e => {
+      const el = document.getElementById(`thumb-${i}`);
+      if (el) { el.innerHTML = `<img src="${e.target.result}" style="width:48px;height:48px;object-fit:cover;border-radius:6px;"/>`; }
+    };
+    reader.readAsDataURL(f);
+  });
+}
+
+// Process all
+document.getElementById('processBtn').addEventListener('click', async () => {
+  if (files.length === 0) return alert('Upload some files first.');
+  results = [];
+
+  const mode = document.getElementById('mode').value;
+  const quality = parseInt(document.getElementById('quality').value) / 100;
+  const format = document.getElementById('format').value;
+  const maxWidth = parseInt(document.getElementById('maxWidth').value);
+  const enhOpts = {
+    brightness: parseInt(document.getElementById('bBrightness').value),
+    contrast: parseInt(document.getElementById('bContrast').value),
+    saturation: parseInt(document.getElementById('bSaturation').value),
+    sharpness: parseInt(document.getElementById('bSharpness').value),
+    format, quality: 0.92
+  };
+
+  const progressWrap = document.getElementById('progressWrap');
+  const progressFill = document.getElementById('progressFill');
+  const progressLabel = document.getElementById('progressLabel');
+  let totalOrigSize = 0, totalCompSize = 0, savingsSum = 0;
+
+  for (let i = 0; i < files.length; i++) {
+    const pct = Math.round((i / files.length) * 100);
+    setProgress(progressWrap, progressFill, progressLabel, pct, `Processing ${i+1} of ${files.length}: ${files[i].name}`);
+    document.getElementById(`status-${i}`).className = 'batch-item__status status--processing';
+    document.getElementById(`status-${i}`).textContent = 'Processing…';
+
+    try {
+      let blob, compressedSize;
+      const origSize = files[i].size;
+      totalOrigSize += origSize;
+
+      if (mode === 'compress') {
+        const r = await compressImage(files[i], { quality, maxWidth, maxHeight: 99999, format });
+        blob = r.blob; compressedSize = r.compressedSize;
+      } else if (mode === 'enhance') {
+        const dataUrl = await readFileAsDataURL(files[i]);
+        const r = await enhanceImage(dataUrl, enhOpts);
+        blob = r.blob; compressedSize = r.blob.size;
+      } else {
+        // both
+        const r1 = await compressImage(files[i], { quality, maxWidth, maxHeight: 99999, format });
+        const r2 = await enhanceImage(r1.dataUrl, enhOpts);
+        blob = r2.blob; compressedSize = r2.blob.size;
+      }
+
+      totalCompSize += compressedSize;
+      const saved = savings(origSize, compressedSize);
+      savingsSum += saved;
+      results.push({ blob, name: files[i].name, origSize, compressedSize });
+
+      document.getElementById(`status-${i}`).className = 'batch-item__status status--done';
+      document.getElementById(`status-${i}`).textContent = `-${saved}%`;
+      document.getElementById(`meta-${i}`).textContent = `${formatBytes(origSize)} → ${formatBytes(compressedSize)}`;
+
+      // Per-file download
+      const dlBtn = document.getElementById(`dl-${i}`);
+      dlBtn.style.display = 'inline-flex';
+      ((b, n) => {
+        dlBtn.onclick = () => {
+          const ext = format === 'jpeg' ? 'jpg' : format;
+          downloadBlob(b, n.replace(/\.[^.]+$/, '') + '_processed.' + ext);
+        };
+      })(blob, files[i].name);
+    } catch(e) {
+      document.getElementById(`status-${i}`).className = 'batch-item__status status--error';
+      document.getElementById(`status-${i}`).textContent = 'Error';
+    }
+  }
+
+  setProgress(progressWrap, progressFill, progressLabel, 100, `All ${files.length} files processed!`);
+  setTimeout(() => hideProgress(progressWrap), 1000);
+
+  // Summary
+  const avgSaved = files.length > 0 ? Math.round(savingsSum / files.length) : 0;
+  document.getElementById('sumTotal').textContent = results.length;
+  document.getElementById('sumSaved').textContent = avgSaved + '%';
+  document.getElementById('sumOrig').textContent = formatBytes(totalOrigSize);
+  document.getElementById('sumComp').textContent = formatBytes(totalCompSize);
+  document.getElementById('summaryPanel').classList.add('show');
+});
+
+// Download all
+document.getElementById('downloadAllBtn').addEventListener('click', () => {
+  if (results.length === 0) { alert('Process files first.'); return; }
+  const ext = (document.getElementById('format').value === 'jpeg') ? 'jpg' : document.getElementById('format').value;
+  results.forEach((r, i) => {
+    setTimeout(() => {
+      downloadBlob(r.blob, r.name.replace(/\.[^.]+$/, '') + '_processed.' + ext);
+    }, i * 350);
+  });
+});
+
+document.getElementById('navToggle').addEventListener('click', () => {
+  document.querySelector('.nav__links').classList.toggle('open');
+});
+</script>
+</body>
+</html>
