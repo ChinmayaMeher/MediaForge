@@ -11,15 +11,15 @@
  */
 export async function enhanceImage(source, opts = {}) {
   const {
-    brightness = 0,    // -100 to 100
-    contrast = 0,      // -100 to 100
-    saturation = 0,    // -100 to 100
-    sharpness = 0,     // 0 to 100
-    denoise = 0,       // 0 to 100
-    warmth = 0,        // -100 to 100
-    vignette = 0,      // 0 to 100
-    format = 'jpeg',
-    quality = 0.92
+    brightness = 0, // -100 to 100
+    contrast = 0, // -100 to 100
+    saturation = 0, // -100 to 100
+    sharpness = 0, // 0 to 100
+    denoise = 0, // 0 to 100
+    warmth = 0, // -100 to 100
+    vignette = 0, // 0 to 100
+    format = "jpeg",
+    quality = 0.92,
   } = opts;
 
   return new Promise((resolve, reject) => {
@@ -28,9 +28,10 @@ export async function enhanceImage(source, opts = {}) {
       const w = img.naturalWidth;
       const h = img.naturalHeight;
 
-      const canvas = document.createElement('canvas');
-      canvas.width = w; canvas.height = h;
-      const ctx = canvas.getContext('2d');
+      const canvas = document.createElement("canvas");
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
       ctx.drawImage(img, 0, 0);
 
       let imageData = ctx.getImageData(0, 0, w, h);
@@ -39,13 +40,14 @@ export async function enhanceImage(source, opts = {}) {
       // --- Brightness & Contrast ---
       if (brightness !== 0 || contrast !== 0) {
         const bVal = brightness * 2.55;
-        const cFactor = contrast > 0
-          ? (259 * (contrast + 255)) / (255 * (259 - contrast))
-          : 1 + contrast / 100;
+        const cFactor =
+          contrast > 0
+            ? (259 * (contrast + 255)) / (255 * (259 - contrast))
+            : 1 + contrast / 100;
         for (let i = 0; i < data.length; i += 4) {
-          data[i]   = clamp(cFactor * (data[i]   - 128) + 128 + bVal);
-          data[i+1] = clamp(cFactor * (data[i+1] - 128) + 128 + bVal);
-          data[i+2] = clamp(cFactor * (data[i+2] - 128) + 128 + bVal);
+          data[i] = clamp(cFactor * (data[i] - 128) + 128 + bVal);
+          data[i + 1] = clamp(cFactor * (data[i + 1] - 128) + 128 + bVal);
+          data[i + 2] = clamp(cFactor * (data[i + 2] - 128) + 128 + bVal);
         }
       }
 
@@ -53,11 +55,13 @@ export async function enhanceImage(source, opts = {}) {
       if (saturation !== 0) {
         const sVal = 1 + saturation / 100;
         for (let i = 0; i < data.length; i += 4) {
-          const r = data[i], g = data[i+1], b = data[i+2];
-          const gray = 0.2989 * r + 0.5870 * g + 0.1140 * b;
-          data[i]   = clamp(gray + sVal * (r - gray));
-          data[i+1] = clamp(gray + sVal * (g - gray));
-          data[i+2] = clamp(gray + sVal * (b - gray));
+          const r = data[i],
+            g = data[i + 1],
+            b = data[i + 2];
+          const gray = 0.2989 * r + 0.587 * g + 0.114 * b;
+          data[i] = clamp(gray + sVal * (r - gray));
+          data[i + 1] = clamp(gray + sVal * (g - gray));
+          data[i + 2] = clamp(gray + sVal * (b - gray));
         }
       }
 
@@ -65,8 +69,8 @@ export async function enhanceImage(source, opts = {}) {
       if (warmth !== 0) {
         const wVal = warmth * 1.5;
         for (let i = 0; i < data.length; i += 4) {
-          data[i]   = clamp(data[i]   + wVal);
-          data[i+2] = clamp(data[i+2] - wVal);
+          data[i] = clamp(data[i] + wVal);
+          data[i + 2] = clamp(data[i + 2] - wVal);
         }
       }
 
@@ -78,7 +82,9 @@ export async function enhanceImage(source, opts = {}) {
           ctx.putImageData(imageData, 0, 0);
           ctx.filter = `blur(${radius * 0.4}px)`;
           ctx.drawImage(canvas, 0, 0);
-          ctx.filter = 'none';
+          ctx.filter = "none";
+          // FIX 1: Re-fetch imageData AND reassign data after denoise,
+          // so sharpness and vignette work on the denoised pixels, not stale ones.
           imageData = ctx.getImageData(0, 0, w, h);
           data = imageData.data;
         }
@@ -86,27 +92,43 @@ export async function enhanceImage(source, opts = {}) {
 
       // --- Sharpness (unsharp mask) ---
       if (sharpness > 0) {
+        // FIX 2: Flush current data to canvas BEFORE creating the blur source,
+        // so blurData is a blur of the actual current state (post-denoise etc.),
+        // and sharpData holds the same current pixels to subtract from.
         imageData.data.set(data);
         ctx.putImageData(imageData, 0, 0);
+
         const amount = sharpness / 100;
-        const blurred = document.createElement('canvas');
-        blurred.width = w; blurred.height = h;
-        const bCtx = blurred.getContext('2d');
-        bCtx.filter = 'blur(1px)';
+        const blurred = document.createElement("canvas");
+        blurred.width = w;
+        blurred.height = h;
+        const bCtx = blurred.getContext("2d");
+        bCtx.filter = "blur(1px)";
         bCtx.drawImage(canvas, 0, 0);
         const blurData = bCtx.getImageData(0, 0, w, h).data;
+
+        // FIX 3: Capture a clean copy of the current (sharp) pixels separately.
+        // Previously, `data` was used as both source and destination, causing
+        // earlier-modified pixels to bleed into later ones in the same loop.
+        const sharpData = new Uint8ClampedArray(data);
         for (let i = 0; i < data.length; i += 4) {
-          data[i]   = clamp(data[i]   + amount * (data[i]   - blurData[i]));
-          data[i+1] = clamp(data[i+1] + amount * (data[i+1] - blurData[i+1]));
-          data[i+2] = clamp(data[i+2] + amount * (data[i+2] - blurData[i+2]));
+          data[i] = clamp(sharpData[i] + amount * (sharpData[i] - blurData[i]));
+          data[i + 1] = clamp(
+            sharpData[i + 1] + amount * (sharpData[i + 1] - blurData[i + 1])
+          );
+          data[i + 2] = clamp(
+            sharpData[i + 2] + amount * (sharpData[i + 2] - blurData[i + 2])
+          );
         }
       }
 
       // --- Vignette ---
       if (vignette > 0) {
-        imageData.data.set(data);
-        ctx.putImageData(imageData, 0, 0);
-        const cx = w / 2, cy = h / 2;
+        // FIX 4: Capture a clean snapshot of sharpened pixels before vignette loop,
+        // same reason as FIX 3 — don't read already-modified pixels mid-loop.
+        const preVigData = new Uint8ClampedArray(data);
+        const cx = w / 2,
+          cy = h / 2;
         const maxDist = Math.sqrt(cx * cx + cy * cy);
         const strength = vignette / 100;
         for (let y = 0; y < h; y++) {
@@ -114,9 +136,9 @@ export async function enhanceImage(source, opts = {}) {
             const idx = (y * w + x) * 4;
             const dist = Math.sqrt((x - cx) ** 2 + (y - cy) ** 2);
             const factor = 1 - strength * (dist / maxDist) ** 2;
-            data[idx]   = clamp(data[idx]   * factor);
-            data[idx+1] = clamp(data[idx+1] * factor);
-            data[idx+2] = clamp(data[idx+2] * factor);
+            data[idx] = clamp(preVigData[idx] * factor);
+            data[idx + 1] = clamp(preVigData[idx + 1] * factor);
+            data[idx + 2] = clamp(preVigData[idx + 2] * factor);
           }
         }
       }
@@ -124,43 +146,128 @@ export async function enhanceImage(source, opts = {}) {
       imageData.data.set(data);
       ctx.putImageData(imageData, 0, 0);
 
-      const mimeType = format === 'png' ? 'image/png' :
-                       format === 'webp' ? 'image/webp' : 'image/jpeg';
+      const mimeType =
+        format === "png"
+          ? "image/png"
+          : format === "webp"
+          ? "image/webp"
+          : "image/jpeg";
 
-      canvas.toBlob((blob) => {
-        if (!blob) return reject(new Error('Enhancement failed'));
-        const fr = new FileReader();
-        fr.onload = () => resolve({
-          blob,
-          dataUrl: fr.result,
-          width: w,
-          height: h
-        });
-        fr.readAsDataURL(blob);
-      }, mimeType, quality);
+      canvas.toBlob(
+        (blob) => {
+          if (!blob) return reject(new Error("Enhancement failed"));
+          const fr = new FileReader();
+          fr.onload = () =>
+            resolve({
+              blob,
+              dataUrl: fr.result,
+              width: w,
+              height: h,
+            });
+          fr.readAsDataURL(blob);
+        },
+        mimeType,
+        quality
+      );
     };
     img.onerror = reject;
-    if (typeof source === 'string') {
+    if (typeof source === "string") {
       img.src = source;
     } else {
       const reader = new FileReader();
-      reader.onload = e => { img.src = e.target.result; };
+      reader.onload = (e) => {
+        img.src = e.target.result;
+      };
       reader.readAsDataURL(source);
     }
   });
 }
 
-function clamp(v) { return Math.max(0, Math.min(255, Math.round(v))); }
+function clamp(v) {
+  return Math.max(0, Math.min(255, Math.round(v)));
+}
 
 /** Preset enhancement profiles */
 export const PRESETS = {
-  original:   { brightness: 0,   contrast: 0,   saturation: 0,   sharpness: 0,  denoise: 0,  warmth: 0,   vignette: 0  },
-  vivid:      { brightness: 5,   contrast: 20,  saturation: 40,  sharpness: 30, denoise: 0,  warmth: 10,  vignette: 0  },
-  portrait:   { brightness: 10,  contrast: 10,  saturation: -10, sharpness: 20, denoise: 30, warmth: 15,  vignette: 30 },
-  landscape:  { brightness: -5,  contrast: 25,  saturation: 35,  sharpness: 25, denoise: 0,  warmth: -5,  vignette: 10 },
-  cinematic:  { brightness: -10, contrast: 35,  saturation: -20, sharpness: 15, denoise: 10, warmth: 20,  vignette: 50 },
-  cool:       { brightness: 0,   contrast: 15,  saturation: 10,  sharpness: 10, denoise: 0,  warmth: -40, vignette: 0  },
-  warm:       { brightness: 5,   contrast: 10,  saturation: 15,  sharpness: 0,  denoise: 0,  warmth: 50,  vignette: 0  },
-  dramatic:   { brightness: -15, contrast: 50,  saturation: -30, sharpness: 40, denoise: 0,  warmth: 0,   vignette: 60 },
-  soft:       { brightness: 15,  contrast: -10, saturation: -5,  sharpness: 0,  denoise: 40, warmth: 10,  vignette: 20 },
+  original: {
+    brightness: 0,
+    contrast: 0,
+    saturation: 0,
+    sharpness: 0,
+    denoise: 0,
+    warmth: 0,
+    vignette: 0,
+  },
+  vivid: {
+    brightness: 5,
+    contrast: 20,
+    saturation: 40,
+    sharpness: 30,
+    denoise: 0,
+    warmth: 10,
+    vignette: 0,
+  },
+  portrait: {
+    brightness: 10,
+    contrast: 10,
+    saturation: -10,
+    sharpness: 20,
+    denoise: 30,
+    warmth: 15,
+    vignette: 30,
+  },
+  landscape: {
+    brightness: -5,
+    contrast: 25,
+    saturation: 35,
+    sharpness: 25,
+    denoise: 0,
+    warmth: -5,
+    vignette: 10,
+  },
+  cinematic: {
+    brightness: -10,
+    contrast: 35,
+    saturation: -20,
+    sharpness: 15,
+    denoise: 10,
+    warmth: 20,
+    vignette: 50,
+  },
+  cool: {
+    brightness: 0,
+    contrast: 15,
+    saturation: 10,
+    sharpness: 10,
+    denoise: 0,
+    warmth: -40,
+    vignette: 0,
+  },
+  warm: {
+    brightness: 5,
+    contrast: 10,
+    saturation: 15,
+    sharpness: 0,
+    denoise: 0,
+    warmth: 50,
+    vignette: 0,
+  },
+  dramatic: {
+    brightness: -15,
+    contrast: 50,
+    saturation: -30,
+    sharpness: 40,
+    denoise: 0,
+    warmth: 0,
+    vignette: 60,
+  },
+  soft: {
+    brightness: 15,
+    contrast: -10,
+    saturation: -5,
+    sharpness: 0,
+    denoise: 40,
+    warmth: 10,
+    vignette: 20,
+  },
 };
