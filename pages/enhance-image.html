@@ -1,338 +1,579 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Photo Enhancer — MediaForge</title>
-  <link rel="stylesheet" href="../css/main.css"/>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Photo Enhancer — MediaForge</title>
+    <link rel="stylesheet" href="../css/main.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <nav class="nav">
+      <a href="../index.html" class="nav__logo">Media<span>Forge</span></a>
+      <ul class="nav__links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="compress-image.html">Image Tools</a></li>
+        <li><a href="compress-video.html">Video Tools</a></li>
+        <li><a href="enhance-image.html" class="active">Enhance</a></li>
+      </ul>
+      <div class="nav__toggle" id="navToggle">&#9776;</div>
+    </nav>
 
-<nav class="nav">
-  <a href="../index.html" class="nav__logo">Media<span>Forge</span></a>
-  <ul class="nav__links">
-    <li><a href="../index.html">Home</a></li>
-    <li><a href="compress-image.html">Image Tools</a></li>
-    <li><a href="compress-video.html">Video Tools</a></li>
-    <li><a href="enhance-image.html" class="active">Enhance</a></li>
-  </ul>
-  <div class="nav__toggle" id="navToggle">&#9776;</div>
-</nav>
-
-<main class="tool-page" style="max-width:1100px;">
-  <div class="tool-page__header">
-    <div class="tool-page__badge badge--purple">✨ Photo Enhancer</div>
-    <h1 class="tool-page__title">Transform Your Photos.<br/>Instantly.</h1>
-    <p class="tool-page__sub">Adjust brightness, contrast, saturation, sharpness, warmth and more — with real-time preview.</p>
-  </div>
-
-  <!-- DROP ZONE -->
-  <div class="dropzone" id="dropzone">
-    <input type="file" accept="image/jpeg,image/png,image/webp"/>
-    <span class="dropzone__icon">✨</span>
-    <h3>Drop your photo here</h3>
-    <p>or click to browse &nbsp;·&nbsp; JPG, PNG, WebP</p>
-  </div>
-
-  <div id="workArea" style="display:none;">
-
-    <!-- PRESET STRIP -->
-    <div class="settings-panel" style="margin-top:1.5rem;">
-      <h4>🎨 Presets</h4>
-      <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:0.75rem;">
-        <button class="preset-btn active" data-preset="original">Original</button>
-        <button class="preset-btn" data-preset="vivid">Vivid</button>
-        <button class="preset-btn" data-preset="portrait">Portrait</button>
-        <button class="preset-btn" data-preset="landscape">Landscape</button>
-        <button class="preset-btn" data-preset="cinematic">Cinematic</button>
-        <button class="preset-btn" data-preset="cool">Cool</button>
-        <button class="preset-btn" data-preset="warm">Warm</button>
-        <button class="preset-btn" data-preset="dramatic">Dramatic</button>
-        <button class="preset-btn" data-preset="soft">Soft</button>
-      </div>
-    </div>
-
-    <!-- ADJUSTMENT SLIDERS -->
-    <div class="settings-panel" style="margin-top:1rem;">
-      <h4>🎛 Manual Adjustments</h4>
-      <div class="form-row" style="margin-top:0.75rem;">
-        <div class="form-group">
-          <label>Brightness <span class="range-val" id="brightnessVal">0</span></label>
-          <input type="range" id="brightness" min="-100" max="100" value="0"/>
-        </div>
-        <div class="form-group">
-          <label>Contrast <span class="range-val" id="contrastVal">0</span></label>
-          <input type="range" id="contrast" min="-100" max="100" value="0"/>
-        </div>
-        <div class="form-group">
-          <label>Saturation <span class="range-val" id="saturationVal">0</span></label>
-          <input type="range" id="saturation" min="-100" max="100" value="0"/>
-        </div>
-        <div class="form-group">
-          <label>Sharpness <span class="range-val" id="sharpnessVal">0</span></label>
-          <input type="range" id="sharpness" min="0" max="100" value="0"/>
-        </div>
-        <div class="form-group">
-          <label>Denoise <span class="range-val" id="denoiseVal">0</span></label>
-          <input type="range" id="denoise" min="0" max="100" value="0"/>
-        </div>
-        <div class="form-group">
-          <label>Warmth <span class="range-val" id="warmthVal">0</span></label>
-          <input type="range" id="warmth" min="-100" max="100" value="0"/>
-        </div>
-        <div class="form-group">
-          <label>Vignette <span class="range-val" id="vignetteVal">0</span></label>
-          <input type="range" id="vignette" min="0" max="100" value="0"/>
-        </div>
-        <div class="form-group">
-          <label>Output Format</label>
-          <select id="format">
-            <option value="jpeg">JPEG</option>
-            <option value="webp">WebP</option>
-            <option value="png">PNG</option>
-          </select>
-        </div>
-      </div>
-      <div style="display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap;">
-        <button class="btn btn--primary btn--lg" id="enhanceBtn">✨ Apply Enhancement</button>
-        <button class="btn btn--ghost" id="resetBtn">↺ Reset</button>
-      </div>
-    </div>
-
-    <!-- PROGRESS -->
-    <div class="progress-wrap" id="progressWrap">
-      <div class="progress-bar"><div class="progress-bar__fill" id="progressFill"></div></div>
-      <p class="progress-label" id="progressLabel">Enhancing…</p>
-    </div>
-
-    <!-- COMPARE VIEW -->
-    <div style="margin-top:1.5rem;">
-      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:1rem;">
-        <h4 style="font-family:var(--font-display); font-size:1rem; font-weight:700;">Before / After</h4>
-        <div style="display:flex; gap:0.5rem;">
-          <button class="btn btn--ghost" id="viewSideBySide" style="padding:0.4rem 0.9rem; font-size:0.8rem; border-radius:6px;">Side by Side</button>
-          <button class="btn btn--ghost" id="viewSlider" style="padding:0.4rem 0.9rem; font-size:0.8rem; border-radius:6px;">Slider</button>
-        </div>
+    <main class="tool-page" style="max-width: 1100px">
+      <div class="tool-page__header">
+        <div class="tool-page__badge badge--purple">✨ Photo Enhancer</div>
+        <h1 class="tool-page__title">Transform Your Photos.<br />Instantly.</h1>
+        <p class="tool-page__sub">
+          Adjust brightness, contrast, saturation, sharpness, warmth and more —
+          with real-time preview.
+        </p>
       </div>
 
-      <!-- Side by side view -->
-      <div id="sideBySideView" class="preview-panel">
-        <div class="preview-box">
-          <div class="preview-box__label">Before</div>
-          <img id="origImg" alt="Original" style="width:100%;max-height:380px;object-fit:contain;background:#000;"/>
-        </div>
-        <div class="preview-box">
-          <div class="preview-box__label">After</div>
-          <div class="preview-box__empty" id="afterEmpty">Apply enhancement to see result</div>
-          <img id="enhImg" alt="Enhanced" style="width:100%;max-height:380px;object-fit:contain;background:#000;display:none;"/>
-        </div>
+      <!-- DROP ZONE -->
+      <div class="dropzone" id="dropzone">
+        <input type="file" accept="image/jpeg,image/png,image/webp" />
+        <span class="dropzone__icon">✨</span>
+        <h3>Drop your photo here</h3>
+        <p>or click to browse &nbsp;·&nbsp; JPG, PNG, WebP</p>
       </div>
 
-      <!-- Slider compare view -->
-      <div id="sliderView" style="display:none;" class="preview-box">
-        <div class="preview-box__label">Drag to compare</div>
-        <div class="compare-wrap" id="compareWrap">
-          <img id="cmpBase" alt="Original" style="width:100%;display:block;max-height:400px;object-fit:contain;background:#000;"/>
-          <div class="compare-overlay" id="cmpOverlay">
-            <img id="cmpEnhanced" alt="Enhanced" style="width:100%;max-height:400px;object-fit:contain;background:#000;"/>
+      <div id="workArea" style="display: none">
+        <!-- PRESET STRIP -->
+        <div class="settings-panel" style="margin-top: 1.5rem">
+          <h4>🎨 Presets</h4>
+          <div
+            style="
+              display: flex;
+              gap: 0.75rem;
+              flex-wrap: wrap;
+              margin-top: 0.75rem;
+            "
+          >
+            <button class="preset-btn active" data-preset="original">
+              Original
+            </button>
+            <button class="preset-btn" data-preset="vivid">Vivid</button>
+            <button class="preset-btn" data-preset="portrait">Portrait</button>
+            <button class="preset-btn" data-preset="landscape">
+              Landscape
+            </button>
+            <button class="preset-btn" data-preset="cinematic">
+              Cinematic
+            </button>
+            <button class="preset-btn" data-preset="cool">Cool</button>
+            <button class="preset-btn" data-preset="warm">Warm</button>
+            <button class="preset-btn" data-preset="dramatic">Dramatic</button>
+            <button class="preset-btn" data-preset="soft">Soft</button>
           </div>
-          <div class="compare-handle" id="cmpHandle"></div>
+        </div>
+
+        <!-- ADJUSTMENT SLIDERS -->
+        <div class="settings-panel" style="margin-top: 1rem">
+          <h4>🎛 Manual Adjustments</h4>
+          <div class="form-row" style="margin-top: 0.75rem">
+            <div class="form-group">
+              <label
+                >Brightness
+                <span class="range-val" id="brightnessVal">0</span></label
+              >
+              <input
+                type="range"
+                id="brightness"
+                min="-100"
+                max="100"
+                value="0"
+              />
+            </div>
+            <div class="form-group">
+              <label
+                >Contrast
+                <span class="range-val" id="contrastVal">0</span></label
+              >
+              <input
+                type="range"
+                id="contrast"
+                min="-100"
+                max="100"
+                value="0"
+              />
+            </div>
+            <div class="form-group">
+              <label
+                >Saturation
+                <span class="range-val" id="saturationVal">0</span></label
+              >
+              <input
+                type="range"
+                id="saturation"
+                min="-100"
+                max="100"
+                value="0"
+              />
+            </div>
+            <div class="form-group">
+              <label
+                >Sharpness
+                <span class="range-val" id="sharpnessVal">0</span></label
+              >
+              <input type="range" id="sharpness" min="0" max="100" value="0" />
+            </div>
+            <div class="form-group">
+              <label
+                >Denoise <span class="range-val" id="denoiseVal">0</span></label
+              >
+              <input type="range" id="denoise" min="0" max="100" value="0" />
+            </div>
+            <div class="form-group">
+              <label
+                >Warmth <span class="range-val" id="warmthVal">0</span></label
+              >
+              <input type="range" id="warmth" min="-100" max="100" value="0" />
+            </div>
+            <div class="form-group">
+              <label
+                >Vignette
+                <span class="range-val" id="vignetteVal">0</span></label
+              >
+              <input type="range" id="vignette" min="0" max="100" value="0" />
+            </div>
+            <div class="form-group">
+              <label>Output Format</label>
+              <select id="format">
+                <option value="jpeg">JPEG</option>
+                <option value="webp">WebP</option>
+                <option value="png">PNG</option>
+              </select>
+            </div>
+          </div>
+          <div
+            style="display: flex; gap: 1rem; margin-top: 1rem; flex-wrap: wrap"
+          >
+            <button class="btn btn--primary btn--lg" id="enhanceBtn">
+              ✨ Apply Enhancement
+            </button>
+            <button class="btn btn--ghost" id="resetBtn">↺ Reset</button>
+          </div>
+        </div>
+
+        <!-- PROGRESS -->
+        <div class="progress-wrap" id="progressWrap">
+          <div class="progress-bar">
+            <div class="progress-bar__fill" id="progressFill"></div>
+          </div>
+          <p class="progress-label" id="progressLabel">Enhancing…</p>
+        </div>
+
+        <!-- COMPARE VIEW -->
+        <div style="margin-top: 1.5rem">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              margin-bottom: 1rem;
+            "
+          >
+            <h4
+              style="
+                font-family: var(--font-display);
+                font-size: 1rem;
+                font-weight: 700;
+              "
+            >
+              Before / After
+            </h4>
+            <div style="display: flex; gap: 0.5rem">
+              <button
+                class="btn btn--ghost"
+                id="viewSideBySide"
+                style="
+                  padding: 0.4rem 0.9rem;
+                  font-size: 0.8rem;
+                  border-radius: 6px;
+                "
+              >
+                Side by Side
+              </button>
+              <button
+                class="btn btn--ghost"
+                id="viewSlider"
+                style="
+                  padding: 0.4rem 0.9rem;
+                  font-size: 0.8rem;
+                  border-radius: 6px;
+                "
+              >
+                Slider
+              </button>
+            </div>
+          </div>
+
+          <!-- Side by side view -->
+          <div id="sideBySideView" class="preview-panel">
+            <div class="preview-box">
+              <div class="preview-box__label">Before</div>
+              <img
+                id="origImg"
+                alt="Original"
+                style="
+                  width: 100%;
+                  max-height: 380px;
+                  object-fit: contain;
+                  background: #000;
+                "
+              />
+            </div>
+            <div class="preview-box">
+              <div class="preview-box__label">After</div>
+              <div class="preview-box__empty" id="afterEmpty">
+                Apply enhancement to see result
+              </div>
+              <img
+                id="enhImg"
+                alt="Enhanced"
+                style="
+                  width: 100%;
+                  max-height: 380px;
+                  object-fit: contain;
+                  background: #000;
+                  display: none;
+                "
+              />
+            </div>
+          </div>
+
+          <!-- Slider compare view -->
+          <div id="sliderView" style="display: none" class="preview-box">
+            <div class="preview-box__label">Drag to compare</div>
+            <div class="compare-wrap" id="compareWrap">
+              <img
+                id="cmpBase"
+                alt="Original"
+                style="
+                  width: 100%;
+                  display: block;
+                  max-height: 400px;
+                  object-fit: contain;
+                  background: #000;
+                "
+              />
+              <div class="compare-overlay" id="cmpOverlay">
+                <img
+                  id="cmpEnhanced"
+                  alt="Enhanced"
+                  style="
+                    width: 100%;
+                    max-height: 400px;
+                    object-fit: contain;
+                    background: #000;
+                  "
+                />
+              </div>
+              <div class="compare-handle" id="cmpHandle"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RESULT / DOWNLOAD -->
+        <div class="result-panel" id="resultPanel" style="margin-top: 1rem">
+          <div class="result-info">
+            <div class="result-stat">
+              <span class="result-stat__val" id="resDims">—</span>
+              <span class="result-stat__key">Dimensions</span>
+            </div>
+            <div class="result-stat">
+              <span class="result-stat__val" id="resFormat">—</span>
+              <span class="result-stat__key">Format</span>
+            </div>
+            <!-- ADD: original size -->
+            <div class="result-stat">
+              <span class="result-stat__val" id="resOrigSize">—</span>
+              <span class="result-stat__key">Original Size</span>
+            </div>
+            <!-- ADD: enhanced size -->
+            <div class="result-stat">
+              <span class="result-stat__val" id="resEnhSize">—</span>
+              <span class="result-stat__key">Enhanced Size</span>
+            </div>
+            <button
+              class="btn btn--green btn--lg"
+              id="downloadBtn"
+              style="margin-left: auto"
+            >
+              ⬇ Download Enhanced
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+      <!-- end workArea -->
+    </main>
 
-    <!-- RESULT / DOWNLOAD -->
-    <div class="result-panel" id="resultPanel" style="margin-top:1rem;">
-      <div class="result-info">
-        <div class="result-stat">
-          <span class="result-stat__val" id="resDims">—</span>
-          <span class="result-stat__key">Dimensions</span>
-        </div>
-        <div class="result-stat">
-          <span class="result-stat__val" id="resFormat">—</span>
-          <span class="result-stat__key">Format</span>
-        </div>
-        <button class="btn btn--green btn--lg" id="downloadBtn" style="margin-left:auto;">⬇ Download Enhanced</button>
-      </div>
-    </div>
+    <footer class="footer">
+      <div class="footer__logo">Media<span>Forge</span></div>
+      <p>No data leaves your browser. Ever.</p>
+      <p class="footer__copy">© 2025 MediaForge</p>
+    </footer>
 
-  </div><!-- end workArea -->
-</main>
+    <style>
+      .preset-btn {
+        padding: 0.45rem 1rem;
+        background: var(--surface2);
+        border: 1px solid var(--border);
+        border-radius: 50px;
+        color: var(--text-dim);
+        font-family: var(--font-body);
+        font-size: 0.82rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .preset-btn:hover {
+        border-color: var(--accent3);
+        color: var(--accent3);
+      }
+      .preset-btn.active {
+        background: rgba(167, 139, 250, 0.15);
+        border-color: var(--accent3);
+        color: var(--accent3);
+        font-weight: 700;
+      }
+    </style>
 
-<footer class="footer">
-  <div class="footer__logo">Media<span>Forge</span></div>
-  <p>No data leaves your browser. Ever.</p>
-  <p class="footer__copy">© 2025 MediaForge</p>
-</footer>
+    <script type="module">
+      import { enhanceImage, PRESETS } from "../js/imageEnhancer.js";
+      import {
+        formatBytes,
+        downloadBlob,
+        readFileAsDataURL,
+        setupDropzone,
+        setProgress,
+        hideProgress,
+      } from "../js/utils.js";
 
-<style>
-.preset-btn {
-  padding: 0.45rem 1rem;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 50px;
-  color: var(--text-dim);
-  font-family: var(--font-body);
-  font-size: 0.82rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.preset-btn:hover { border-color: var(--accent3); color: var(--accent3); }
-.preset-btn.active { background: rgba(167,139,250,0.15); border-color: var(--accent3); color: var(--accent3); font-weight: 700; }
-</style>
+      let currentFile = null;
+      let currentDataUrl = null;
+      let enhancedBlob = null;
+      let isSliderView = false;
 
-<script type="module">
-import { enhanceImage, PRESETS } from '../js/imageEnhancer.js';
-import { formatBytes, downloadBlob, readFileAsDataURL, setupDropzone, setProgress, hideProgress } from '../js/utils.js';
+      // Sliders
+      const sliders = [
+        "brightness",
+        "contrast",
+        "saturation",
+        "sharpness",
+        "denoise",
+        "warmth",
+        "vignette",
+      ];
+      sliders.forEach((id) => {
+        const el = document.getElementById(id);
+        const val = document.getElementById(id + "Val");
+        el.addEventListener("input", () => {
+          val.textContent = el.value;
+        });
+      });
 
-let currentFile = null;
-let currentDataUrl = null;
-let enhancedBlob = null;
-let isSliderView = false;
+      // Dropzone
+      setupDropzone(
+        document.getElementById("dropzone"),
+        [".jpg", ".jpeg", ".png", ".webp"],
+        async (files) => {
+          if (!files[0]) return;
+          currentFile = files[0];
+          currentDataUrl = await readFileAsDataURL(files[0]);
+          document.getElementById("origImg").src = currentDataUrl;
+          document.getElementById("cmpBase").src = currentDataUrl;
+          document.getElementById("workArea").style.display = "block";
+          document.getElementById("resultPanel").classList.remove("show");
+        }
+      );
 
-// Sliders
-const sliders = ['brightness','contrast','saturation','sharpness','denoise','warmth','vignette'];
-sliders.forEach(id => {
-  const el = document.getElementById(id);
-  const val = document.getElementById(id + 'Val');
-  el.addEventListener('input', () => { val.textContent = el.value; });
-});
+      // Presets
+      document.querySelectorAll(".preset-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          document
+            .querySelectorAll(".preset-btn")
+            .forEach((b) => b.classList.remove("active"));
+          btn.classList.add("active");
+          const preset = PRESETS[btn.dataset.preset];
+          if (!preset) return;
+          sliders.forEach((id) => {
+            document.getElementById(id).value = preset[id] ?? 0;
+            document.getElementById(id + "Val").textContent = preset[id] ?? 0;
+          });
+        });
+      });
 
-// Dropzone
-setupDropzone(document.getElementById('dropzone'), ['.jpg','.jpeg','.png','.webp'], async (files) => {
-  if (!files[0]) return;
-  currentFile = files[0];
-  currentDataUrl = await readFileAsDataURL(files[0]);
-  document.getElementById('origImg').src = currentDataUrl;
-  document.getElementById('cmpBase').src = currentDataUrl;
-  document.getElementById('workArea').style.display = 'block';
-  document.getElementById('resultPanel').classList.remove('show');
-});
+      // View toggle
+      document
+        .getElementById("viewSideBySide")
+        .addEventListener("click", () => {
+          isSliderView = false;
+          document.getElementById("sideBySideView").style.display = "grid";
+          document.getElementById("sliderView").style.display = "none";
+        });
+      document.getElementById("viewSlider").addEventListener("click", () => {
+        isSliderView = true;
+        document.getElementById("sideBySideView").style.display = "none";
+        document.getElementById("sliderView").style.display = "block";
+      });
 
-// Presets
-document.querySelectorAll('.preset-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-    const preset = PRESETS[btn.dataset.preset];
-    if (!preset) return;
-    sliders.forEach(id => {
-      document.getElementById(id).value = preset[id] ?? 0;
-      document.getElementById(id + 'Val').textContent = preset[id] ?? 0;
-    });
-  });
-});
+      // Reset
+      document.getElementById("resetBtn").addEventListener("click", () => {
+        sliders.forEach((id) => {
+          document.getElementById(id).value = 0;
+          document.getElementById(id + "Val").textContent = 0;
+        });
+        document
+          .querySelectorAll(".preset-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document
+          .querySelector('[data-preset="original"]')
+          .classList.add("active");
+      });
 
-// View toggle
-document.getElementById('viewSideBySide').addEventListener('click', () => {
-  isSliderView = false;
-  document.getElementById('sideBySideView').style.display = 'grid';
-  document.getElementById('sliderView').style.display = 'none';
-});
-document.getElementById('viewSlider').addEventListener('click', () => {
-  isSliderView = true;
-  document.getElementById('sideBySideView').style.display = 'none';
-  document.getElementById('sliderView').style.display = 'block';
-});
+      // Enhance
+      document
+        .getElementById("enhanceBtn")
+        .addEventListener("click", async () => {
+          if (!currentDataUrl) return alert("Upload an image first.");
 
-// Reset
-document.getElementById('resetBtn').addEventListener('click', () => {
-  sliders.forEach(id => {
-    document.getElementById(id).value = 0;
-    document.getElementById(id + 'Val').textContent = 0;
-  });
-  document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
-  document.querySelector('[data-preset="original"]').classList.add('active');
-});
+          const opts = {
+            brightness: parseInt(document.getElementById("brightness").value),
+            contrast: parseInt(document.getElementById("contrast").value),
+            saturation: parseInt(document.getElementById("saturation").value),
+            sharpness: parseInt(document.getElementById("sharpness").value),
+            denoise: parseInt(document.getElementById("denoise").value),
+            warmth: parseInt(document.getElementById("warmth").value),
+            vignette: parseInt(document.getElementById("vignette").value),
+            format: document.getElementById("format").value,
+            quality: 0.92,
+          };
 
-// Enhance
-document.getElementById('enhanceBtn').addEventListener('click', async () => {
-  if (!currentDataUrl) return alert('Upload an image first.');
+          const progressWrap = document.getElementById("progressWrap");
+          const progressFill = document.getElementById("progressFill");
+          const progressLabel = document.getElementById("progressLabel");
+          setProgress(
+            progressWrap,
+            progressFill,
+            progressLabel,
+            30,
+            "Applying adjustments…"
+          );
+          document.getElementById("enhanceBtn").disabled = true;
 
-  const opts = {
-    brightness: parseInt(document.getElementById('brightness').value),
-    contrast: parseInt(document.getElementById('contrast').value),
-    saturation: parseInt(document.getElementById('saturation').value),
-    sharpness: parseInt(document.getElementById('sharpness').value),
-    denoise: parseInt(document.getElementById('denoise').value),
-    warmth: parseInt(document.getElementById('warmth').value),
-    vignette: parseInt(document.getElementById('vignette').value),
-    format: document.getElementById('format').value,
-    quality: 0.92
-  };
+          try {
+            let prog = 30;
+            const ticker = setInterval(() => {
+              prog = Math.min(prog + 20, 90);
+              setProgress(
+                progressWrap,
+                progressFill,
+                progressLabel,
+                prog,
+                "Processing pixels…"
+              );
+            }, 100);
 
-  const progressWrap = document.getElementById('progressWrap');
-  const progressFill = document.getElementById('progressFill');
-  const progressLabel = document.getElementById('progressLabel');
-  setProgress(progressWrap, progressFill, progressLabel, 30, 'Applying adjustments…');
-  document.getElementById('enhanceBtn').disabled = true;
+            const result = await enhanceImage(currentDataUrl, opts);
+            clearInterval(ticker);
+            setProgress(
+              progressWrap,
+              progressFill,
+              progressLabel,
+              100,
+              "Done!"
+            );
+            setTimeout(() => hideProgress(progressWrap), 600);
 
-  try {
-    let prog = 30;
-    const ticker = setInterval(() => {
-      prog = Math.min(prog + 20, 90);
-      setProgress(progressWrap, progressFill, progressLabel, prog, 'Processing pixels…');
-    }, 100);
+            enhancedBlob = result.blob;
 
-    const result = await enhanceImage(currentDataUrl, opts);
-    clearInterval(ticker);
-    setProgress(progressWrap, progressFill, progressLabel, 100, 'Done!');
-    setTimeout(() => hideProgress(progressWrap), 600);
+            // Side by side
+            const enhImg = document.getElementById("enhImg");
+            enhImg.src = result.dataUrl;
+            enhImg.style.display = "block";
+            document.getElementById("afterEmpty").style.display = "none";
 
-    enhancedBlob = result.blob;
+            // Slider compare
+            document.getElementById("cmpEnhanced").src = result.dataUrl;
 
-    // Side by side
-    const enhImg = document.getElementById('enhImg');
-    enhImg.src = result.dataUrl;
-    enhImg.style.display = 'block';
-    document.getElementById('afterEmpty').style.display = 'none';
+            document.getElementById(
+              "resDims"
+            ).textContent = `${result.width} × ${result.height}`;
+            document.getElementById("resFormat").textContent =
+              opts.format.toUpperCase();
+            document.getElementById("resOrigSize").textContent = formatBytes(
+              currentFile.size
+            );
+            document.getElementById("resEnhSize").textContent = formatBytes(
+              result.blob.size
+            );
+            document.getElementById("resultPanel").classList.add("show");
 
-    // Slider compare
-    document.getElementById('cmpEnhanced').src = result.dataUrl;
+            document.getElementById("downloadBtn").onclick = () => {
+              const ext = opts.format === "jpeg" ? "jpg" : opts.format;
+              const name =
+                (currentFile?.name || "enhanced").replace(/\.[^.]+$/, "") +
+                "_enhanced." +
+                ext;
+              downloadBlob(enhancedBlob, name);
+            };
+          } catch (err) {
+            hideProgress(progressWrap);
+            alert("Enhancement failed: " + err.message);
+          } finally {
+            document.getElementById("enhanceBtn").disabled = false;
+          }
+        });
 
-    document.getElementById('resDims').textContent = `${result.width} × ${result.height}`;
-    document.getElementById('resFormat').textContent = opts.format.toUpperCase();
-    document.getElementById('resultPanel').classList.add('show');
+      // Compare slider drag
+      const compareWrap = document.getElementById("compareWrap");
+      const cmpOverlay = document.getElementById("cmpOverlay");
+      const cmpHandle = document.getElementById("cmpHandle");
+      let isDragging = false;
 
-    document.getElementById('downloadBtn').onclick = () => {
-      const ext = opts.format === 'jpeg' ? 'jpg' : opts.format;
-      const name = (currentFile?.name || 'enhanced').replace(/\.[^.]+$/, '') + '_enhanced.' + ext;
-      downloadBlob(enhancedBlob, name);
-    };
-  } catch(err) {
-    hideProgress(progressWrap);
-    alert('Enhancement failed: ' + err.message);
-  } finally {
-    document.getElementById('enhanceBtn').disabled = false;
-  }
-});
+      function updateSlider(x) {
+        const rect = compareWrap.getBoundingClientRect();
+        const pct = Math.max(
+          0,
+          Math.min(100, ((x - rect.left) / rect.width) * 100)
+        );
+        cmpOverlay.style.width = pct + "%";
+        cmpHandle.style.left = pct + "%";
+      }
 
-// Compare slider drag
-const compareWrap = document.getElementById('compareWrap');
-const cmpOverlay = document.getElementById('cmpOverlay');
-const cmpHandle = document.getElementById('cmpHandle');
-let isDragging = false;
+      compareWrap.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        updateSlider(e.clientX);
+      });
+      compareWrap.addEventListener(
+        "touchstart",
+        (e) => {
+          isDragging = true;
+          updateSlider(e.touches[0].clientX);
+        },
+        { passive: true }
+      );
+      window.addEventListener("mousemove", (e) => {
+        if (isDragging) updateSlider(e.clientX);
+      });
+      window.addEventListener(
+        "touchmove",
+        (e) => {
+          if (isDragging) updateSlider(e.touches[0].clientX);
+        },
+        { passive: true }
+      );
+      window.addEventListener("mouseup", () => (isDragging = false));
+      window.addEventListener("touchend", () => (isDragging = false));
 
-function updateSlider(x) {
-  const rect = compareWrap.getBoundingClientRect();
-  const pct = Math.max(0, Math.min(100, ((x - rect.left) / rect.width) * 100));
-  cmpOverlay.style.width = pct + '%';
-  cmpHandle.style.left = pct + '%';
-}
-
-compareWrap.addEventListener('mousedown', e => { isDragging = true; updateSlider(e.clientX); });
-compareWrap.addEventListener('touchstart', e => { isDragging = true; updateSlider(e.touches[0].clientX); }, { passive: true });
-window.addEventListener('mousemove', e => { if (isDragging) updateSlider(e.clientX); });
-window.addEventListener('touchmove', e => { if (isDragging) updateSlider(e.touches[0].clientX); }, { passive: true });
-window.addEventListener('mouseup', () => isDragging = false);
-window.addEventListener('touchend', () => isDragging = false);
-
-document.getElementById('navToggle').addEventListener('click', () => {
-  document.querySelector('.nav__links').classList.toggle('open');
-});
-</script>
-</body>
+      document.getElementById("navToggle").addEventListener("click", () => {
+        document.querySelector(".nav__links").classList.toggle("open");
+      });
+    </script>
+  </body>
 </html>
