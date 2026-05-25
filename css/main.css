@@ -760,7 +760,7 @@ a {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 1.75rem;
-  margin-top: 1.5rem;
+  margin-top: 1.45rem;
 }
 .settings-panel h4 {
   font-family: var(--font-display);
